@@ -1,0 +1,55 @@
+ID: ev_CUPS
+_schema-version: '2.1'
+version: 0.0.1
+modules:
+  - name: db
+    type: hdb
+    path: db
+    requires:
+      - name: hdi_db
+        properties:
+          TARGET_CONTAINER: '~{hdi-container-name}'
+      - name: cross-container-service-1
+        group: SERVICE_REPLACEMENTS
+        properties:
+          key: ServiceName_1
+          service: '~{the-service-name}'
+  - name: web
+    type: html5
+    path: web
+    requires:
+      - name: openSAP-UAA
+      - name: srv_api
+        group: destinations
+        properties:
+          name: srv_api
+          url: '~{url}'
+          forwardAuthToken: true
+  - name: srv
+    type: nodejs
+    path: srv
+    provides:
+      - name: srv_api
+        properties:
+          url: '${default-url}'
+    requires:
+      - name: hdi_db
+      - name: openSAP-UAA
+resources:
+  - name: hdi_db
+    parameters:
+      config:
+        schema: db_SFLIGHT
+    properties:
+      hdi-container-name: '${service-name}'
+    type: com.sap.xs.hdi-container
+  - name: cross-container-service-1
+    parameters:
+      service-name: CUPS_EV_SFLIGHT
+    properties:
+      the-service-name: '${service-name}'
+    type: org.cloudfoundry.existing-service
+  - name: openSAP-UAA
+    type: com.sap.xs.uaa-space
+    parameters:
+      path: /xs-security.json
